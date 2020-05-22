@@ -2,6 +2,8 @@
 //
 #include "HotelBooking.h"
 
+using namespace std;
+
 void Run(istream& input, ostream& output, BookingService& service)
 {
 	string line;
