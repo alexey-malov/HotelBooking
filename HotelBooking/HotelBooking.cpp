@@ -1,22 +1,6 @@
 // HotelBooking.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
-
-#include <iostream>
-#include <sstream>
-#include <stdexcept>
-#include <string>
-#include <string_view>
-
-using namespace std;
-using namespace std::literals;
-using Time = int64_t;
-using ClientId = uint32_t;
-using RoomCount = unsigned;
-
-class BookingService
-{
-public:
-};
+#include "HotelBooking.h"
 
 void Run(istream& input, ostream& output, BookingService& service)
 {
@@ -40,6 +24,7 @@ void Run(istream& input, ostream& output, BookingService& service)
 			{
 				throw runtime_error("BOOK query syntax error");
 			}
+			service.Book(time, hotelName, clientId, roomCount);
 		}
 		else if (query == "CLIENTS"sv)
 		{
@@ -47,6 +32,7 @@ void Run(istream& input, ostream& output, BookingService& service)
 			{
 				throw runtime_error("CLIENTS query syntax error");
 			}
+			output << service.GetDistinctClientCountWithinLastDay(hotelName) << "\n";
 		}
 		else if (query == "ROOMS"sv)
 		{
@@ -54,6 +40,7 @@ void Run(istream& input, ostream& output, BookingService& service)
 			{
 				throw runtime_error("ROOMS query syntax error");
 			}
+			output << service.GetBookedRoomCountWithinLastDay(hotelName) << "\n";
 		}
 		else
 		{
