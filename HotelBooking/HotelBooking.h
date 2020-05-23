@@ -11,19 +11,19 @@
 #include <unordered_map>
 #include <vector>
 
-#define USE_UNORDERED_MAP_AS_DICTIONARY
+#define USE_UNORDERED_MAP_FOR_STORING_HOTELS
 
 using namespace std::literals;
 using Time = int64_t;
 using ClientId = uint32_t;
 using RoomCount = uint32_t;
 
-#ifdef USE_UNORDERED_MAP_AS_DICTIONARY
+#ifdef USE_UNORDERED_MAP_FOR_STORING_HOTELS
 template <typename Key, typename Value>
-using Dictionary = std::unordered_map<Key, Value>;
+using HotelMapType = std::unordered_map<Key, Value>;
 #else
 template <typename Key, typename Value>
-using Dictionary = std::map<Key, Value>;
+using HotelMapType = std::map<Key, Value>;
 #endif
 
 class HotelBookings final
@@ -37,12 +37,12 @@ public:
 	void Book(Time time, ClientId clientId, RoomCount roomCount)
 	{
 		AddBooking(time, clientId, roomCount);
-		RemoveBookingsStatsUpTo(time - m_timeSpan);
+		RemoveBookingsDeprecatedBy(time - m_timeSpan);
 	}
 
-	unsigned GetDistinctClientCountWithinTimeSpan() const noexcept
+	size_t GetDistinctClientCountWithinTimeSpan() const noexcept
 	{
-		return m_distinctClientCountWithinTimeSpan;
+		return m_clientBookingCount.size();
 	}
 
 	RoomCount GetBookedRoomCountWithinTimeSpan() const noexcept
@@ -69,11 +69,7 @@ private:
 		m_bookings.emplace_back(time, clientId, roomCount);
 		try
 		{
-			auto& clientBookingCounter = m_clientBookingCount[clientId];
-			if (++clientBookingCounter == 1) // new client registered
-			{
-				++m_distinctClientCountWithinTimeSpan;
-			}
+			++m_clientBookingCount[clientId];
 			m_bookedRoomsWithinTimeSpan += roomCount;
 		}
 		catch (...)
@@ -84,7 +80,7 @@ private:
 		}
 	}
 
-	void RemoveBookingsStatsUpTo(Time time) noexcept
+	void RemoveBookingsDeprecatedBy(Time time) noexcept
 	{
 		auto endOfOutdatedBookings = std::find_if(m_bookings.begin(), m_bookings.end(),
 			[time, this](auto&& booking) {
@@ -94,7 +90,7 @@ private:
 				}
 				else
 				{
-					UnregisterClientBooking(booking.clientId);
+					DecrementClientBookingCount(booking.clientId);
 					m_bookedRoomsWithinTimeSpan -= booking.roomCount;
 					return false;
 				}
@@ -102,27 +98,20 @@ private:
 		m_bookings.erase(m_bookings.begin(), endOfOutdatedBookings);
 	}
 
-	void UnregisterClientBooking(ClientId clientId) noexcept
+	void DecrementClientBookingCount(ClientId clientId) noexcept
 	{
-		auto& clientBookingCount = m_clientBookingCount[clientId];
-		assert(clientBookingCount > 0);
-		if (--clientBookingCount == 0) // no client bookings within current time span
+		if (auto it = m_clientBookingCount.find(clientId);
+			(it != m_clientBookingCount.end() && (--it->second == 0))) // no client bookings within current time span
 		{
-			--m_distinctClientCountWithinTimeSpan;
+			m_clientBookingCount.erase(it);
 		}
 	}
 
 	Time m_timeSpan;
-	unsigned m_distinctClientCountWithinTimeSpan = 0;
 	RoomCount m_bookedRoomsWithinTimeSpan = 0;
 
-	std::deque<Booking> m_bookings;
-	Dictionary<ClientId, unsigned> m_clientBookingCount;
-
-	/*
-	ClientBookingContext m_clientBookings;
-	RoomBookingContext m_roomBookings;
-	*/
+	std::deque<Booking> m_bookings; // Booking history within time span
+	std::unordered_map<ClientId, unsigned> m_clientBookingCount;
 };
 
 class BookingService final
@@ -138,7 +127,7 @@ public:
 		GetHotelBookings(hotelName).Book(time, clientId, roomCount);
 	}
 
-	unsigned GetDistinctClientCountWithinTimeSpan(const std::string& hotelName) const noexcept
+	size_t GetDistinctClientCountWithinTimeSpan(const std::string& hotelName) const noexcept
 	{
 		auto optHotelBookings = FindHotelBookings(hotelName);
 		return optHotelBookings ? optHotelBookings->GetDistinctClientCountWithinTimeSpan() : 0;
@@ -168,7 +157,7 @@ private:
 	}
 
 	Time m_statisticTimeSpan;
-	Dictionary<std::string, HotelBookings> m_hotelBookings;
+	HotelMapType<std::string, HotelBookings> m_hotelBookings;
 };
 
 class UserInterface
