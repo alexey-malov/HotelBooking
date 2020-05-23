@@ -3,16 +3,28 @@
 #include <algorithm>
 #include <cassert>
 #include <iostream>
+#include <map>
 #include <sstream>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
+#define USE_UNORDERED_MAP_AS_DICTIONARY
+
 using namespace std::literals;
 using Time = int64_t;
 using ClientId = uint32_t;
 using RoomCount = unsigned;
+
+
+#ifdef USE_UNORDERED_MAP_AS_DICTIONARY
+template <typename Key, typename Value>
+using Dictionary = std::unordered_map<Key, Value>;
+#else
+template <typename Key, typename Value>
+using Dictionary = std::map<Key, Value>;
+#endif
 
 class ClientBookingContext final
 {
@@ -79,7 +91,7 @@ private:
 		}
 	}
 
-	std::unordered_map<ClientId, unsigned> m_clientBookingCount;
+	Dictionary<ClientId, unsigned> m_clientBookingCount;
 	Time m_statisticsTimeSpan;
 	unsigned m_distinctClientCountWithinTimeSpan = 0;
 
@@ -238,7 +250,7 @@ private:
 	}
 
 	Time m_statisticTimeSpan;
-	std::unordered_map<std::string, HotelBookings> m_hotelBookings;
+	Dictionary<std::string, HotelBookings> m_hotelBookings;
 };
 
 class UserInterface
