@@ -20,36 +20,36 @@ SCENARIO("Hotel bookings")
 	const ClientId client3 = 1234;
 	const ClientId client4 = 100500;
 
-	CHECK(bookings.GetDistinctClientCountWithinTimeSpan() == 0);
-	CHECK(bookings.GetBookedRoomCountWithinTimeSpan() == 0);
+	CHECK(bookings.GetDistinctClientCount() == 0);
+	CHECK(bookings.GetBookedRoomCount() == 0);
 
 	bookings.Book(0, client1, 10);
-	CHECK(bookings.GetDistinctClientCountWithinTimeSpan() == 1);
-	CHECK(bookings.GetBookedRoomCountWithinTimeSpan() == 10);
+	CHECK(bookings.GetDistinctClientCount() == 1);
+	CHECK(bookings.GetBookedRoomCount() == 10);
 
 	bookings.Book(2, client1, 10);
-	CHECK(bookings.GetDistinctClientCountWithinTimeSpan() == 1);
-	CHECK(bookings.GetBookedRoomCountWithinTimeSpan() == 20);
+	CHECK(bookings.GetDistinctClientCount() == 1);
+	CHECK(bookings.GetBookedRoomCount() == 20);
 
 	bookings.Book(2, client2, 5);
-	CHECK(bookings.GetDistinctClientCountWithinTimeSpan() == 2);
-	CHECK(bookings.GetBookedRoomCountWithinTimeSpan() == 25);
+	CHECK(bookings.GetDistinctClientCount() == 2);
+	CHECK(bookings.GetBookedRoomCount() == 25);
 
 	bookings.Book(timeSpan - 1, client3, 20);
-	CHECK(bookings.GetDistinctClientCountWithinTimeSpan() == 3);
-	CHECK(bookings.GetBookedRoomCountWithinTimeSpan() == 45);
+	CHECK(bookings.GetDistinctClientCount() == 3);
+	CHECK(bookings.GetBookedRoomCount() == 45);
 
 	bookings.Book(timeSpan, client3, 2);
-	CHECK(bookings.GetDistinctClientCountWithinTimeSpan() == 3);
-	CHECK(bookings.GetBookedRoomCountWithinTimeSpan() == 37);
+	CHECK(bookings.GetDistinctClientCount() == 3);
+	CHECK(bookings.GetBookedRoomCount() == 37);
 
 	bookings.Book(timeSpan + timeSpan - 1, client4, 100);
-	CHECK(bookings.GetDistinctClientCountWithinTimeSpan() == 2);
-	CHECK(bookings.GetBookedRoomCountWithinTimeSpan() == 102);
+	CHECK(bookings.GetDistinctClientCount() == 2);
+	CHECK(bookings.GetBookedRoomCount() == 102);
 
 	bookings.Book(timeSpan * 10, client4, 3);
-	CHECK(bookings.GetDistinctClientCountWithinTimeSpan() == 1);
-	CHECK(bookings.GetBookedRoomCountWithinTimeSpan() == 3);
+	CHECK(bookings.GetDistinctClientCount() == 1);
+	CHECK(bookings.GetBookedRoomCount() == 3);
 }
 
 SCENARIO("Booking Service tests")
@@ -67,14 +67,14 @@ SCENARIO("Booking Service tests")
 
 	BookingService service;
 
-	CHECK(service.GetBookedRoomCountWithinTimeSpan(hotel1) == 0);
-	CHECK(service.GetDistinctClientCountWithinTimeSpan(hotel2) == 0);
+	CHECK(service.GetBookedRoomCount(hotel1) == 0);
+	CHECK(service.GetDistinctClientCount(hotel2) == 0);
 
 	service.Book(0, hotel1, client3, 3);
-	CHECK(service.GetBookedRoomCountWithinTimeSpan(hotel1) == 3);
-	CHECK(service.GetDistinctClientCountWithinTimeSpan(hotel1) == 1);
-	CHECK(service.GetBookedRoomCountWithinTimeSpan(hotel2) == 0);
-	CHECK(service.GetDistinctClientCountWithinTimeSpan(hotel2) == 0);
+	CHECK(service.GetBookedRoomCount(hotel1) == 3);
+	CHECK(service.GetDistinctClientCount(hotel1) == 1);
+	CHECK(service.GetBookedRoomCount(hotel2) == 0);
+	CHECK(service.GetDistinctClientCount(hotel2) == 0);
 }
 
 SCENARIO("User Interface")

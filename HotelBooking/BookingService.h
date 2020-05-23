@@ -18,9 +18,9 @@ public:
 
 	void Book(Time time, const std::string& hotelName, ClientId clientId, RoomCount roomCount);
 
-	size_t GetDistinctClientCountWithinTimeSpan(const std::string& hotelName) const noexcept;
+	size_t GetDistinctClientCount(const std::string& hotelName) const noexcept;
 
-	RoomCount GetBookedRoomCountWithinTimeSpan(const std::string& hotelName) const noexcept;
+	RoomCount GetBookedRoomCount(const std::string& hotelName) const noexcept;
 
 private:
 	const HotelBookings* FindHotelBookings(const std::string& hotelName) const noexcept;

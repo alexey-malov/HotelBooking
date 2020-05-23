@@ -11,12 +11,12 @@ void HotelBookings::Book(Time time, ClientId clientId, RoomCount roomCount)
 	RemoveBookingsDeprecatedBy(time - m_timeSpan);
 }
 
-size_t HotelBookings::GetDistinctClientCountWithinTimeSpan() const noexcept
+size_t HotelBookings::GetDistinctClientCount() const noexcept
 {
 	return m_clientBookingCount.size();
 }
 
-RoomCount HotelBookings::GetBookedRoomCountWithinTimeSpan() const noexcept
+RoomCount HotelBookings::GetBookedRoomCount() const noexcept
 {
 	return m_bookedRoomsWithinTimeSpan;
 }

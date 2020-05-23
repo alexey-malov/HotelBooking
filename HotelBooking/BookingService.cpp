@@ -10,16 +10,16 @@ void BookingService::Book(Time time, const std::string& hotelName, ClientId clie
 	GetHotelBookings(hotelName).Book(time, clientId, roomCount);
 }
 
-size_t BookingService::GetDistinctClientCountWithinTimeSpan(const std::string& hotelName) const noexcept
+size_t BookingService::GetDistinctClientCount(const std::string& hotelName) const noexcept
 {
 	auto optHotelBookings = FindHotelBookings(hotelName);
-	return optHotelBookings ? optHotelBookings->GetDistinctClientCountWithinTimeSpan() : 0;
+	return optHotelBookings ? optHotelBookings->GetDistinctClientCount() : 0;
 }
 
-RoomCount BookingService::GetBookedRoomCountWithinTimeSpan(const std::string& hotelName) const noexcept
+RoomCount BookingService::GetBookedRoomCount(const std::string& hotelName) const noexcept
 {
 	auto optHotelBookings = FindHotelBookings(hotelName);
-	return optHotelBookings ? optHotelBookings->GetBookedRoomCountWithinTimeSpan() : 0;
+	return optHotelBookings ? optHotelBookings->GetBookedRoomCount() : 0;
 }
 
 const HotelBookings* BookingService::FindHotelBookings(const std::string& hotelName) const noexcept

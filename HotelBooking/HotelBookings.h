@@ -16,9 +16,9 @@ public:
 
 	void Book(Time time, ClientId clientId, RoomCount roomCount);
 
-	size_t GetDistinctClientCountWithinTimeSpan() const noexcept;
+	size_t GetDistinctClientCount() const noexcept;
 
-	RoomCount GetBookedRoomCountWithinTimeSpan() const noexcept;
+	RoomCount GetBookedRoomCount() const noexcept;
 
 private:
 	struct Booking
