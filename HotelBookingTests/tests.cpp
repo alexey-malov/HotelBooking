@@ -1,7 +1,12 @@
-#include "stdafx.h"
-#include "../HotelBooking/HotelBooking.h"
+#include "../HotelBooking/BookingService.h"
+#include "../HotelBooking/UserInterface.h"
+
+#include "catch2/catch.hpp"
+
 #include <chrono>
+#include <iostream>
 #include <random>
+#include <sstream>
 
 using namespace std;
 using namespace std::literals;
