@@ -15,7 +15,7 @@
 using namespace std::literals;
 using Time = int64_t;
 using ClientId = uint32_t;
-using RoomCount = unsigned;
+using RoomCount = uint64_t;
 
 
 #ifdef USE_UNORDERED_MAP_AS_DICTIONARY

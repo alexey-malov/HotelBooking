@@ -235,7 +235,7 @@ vector<ClientId> GenerateClientIds(unsigned count)
 
 SCENARIO("Benchmark")
 {
-	auto hotels = GenerateHotels(100'000);
+	auto hotels = GenerateHotels(1'000);
 	auto clients = GenerateClientIds(20'000);
 	mt19937 gen;
 	uniform_int_distribution<size_t> randHotel(0, hotels.size() - 1);
