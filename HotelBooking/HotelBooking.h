@@ -26,18 +26,18 @@ template <typename Key, typename Value>
 using Dictionary = std::map<Key, Value>;
 #endif
 
-class ClientBookingContext final
+class HotelBookings final
 {
 public:
-	explicit ClientBookingContext(Time statisticsTimeSpan)
-		: m_statisticsTimeSpan(statisticsTimeSpan)
+	explicit HotelBookings(Time timeSpan)
+		: m_timeSpan(timeSpan)
 	{
 	}
 
-	void Book(Time time, ClientId clientId)
+	void Book(Time time, ClientId clientId, RoomCount roomCount)
 	{
-		RegisterNewBooking(time, clientId);
-		UnregisterBookingsUpTo(time - m_statisticsTimeSpan);
+		AddBooking(time, clientId, roomCount);
+		RemoveBookingsStatsUpTo(time - m_timeSpan);
 	}
 
 	unsigned GetDistinctClientCountWithinTimeSpan() const noexcept
@@ -45,22 +45,28 @@ public:
 		return m_distinctClientCountWithinTimeSpan;
 	}
 
+	RoomCount GetBookedRoomCountWithinTimeSpan() const noexcept
+	{
+		return m_bookedRoomsWithinTimeSpan;
+	}
+
 private:
 	struct Booking
 	{
-		Booking(Time time, ClientId clientId) noexcept
+		Booking(Time time, ClientId clientId, RoomCount roomCount) noexcept
 			: time(time)
 			, clientId(clientId)
+			, roomCount(roomCount)
 		{
 		}
 		Time time;
 		ClientId clientId;
+		RoomCount roomCount;
 	};
 
-	void RegisterNewBooking(Time time, ClientId clientId)
+	void AddBooking(Time time, ClientId clientId, RoomCount roomCount)
 	{
-		m_bookings.emplace_back(time, clientId);
-
+		m_bookings.emplace_back(time, clientId, roomCount);
 		try
 		{
 			auto& clientBookingCounter = m_clientBookingCount[clientId];
@@ -68,6 +74,7 @@ private:
 			{
 				++m_distinctClientCountWithinTimeSpan;
 			}
+			m_bookedRoomsWithinTimeSpan += roomCount;
 		}
 		catch (...)
 		{
@@ -77,7 +84,7 @@ private:
 		}
 	}
 
-	void UnregisterBookingsUpTo(Time time) noexcept
+	void RemoveBookingsStatsUpTo(Time time) noexcept
 	{
 		auto endOfOutdatedBookings = std::find_if(m_bookings.begin(), m_bookings.end(),
 			[time, this](auto&& booking) {
@@ -88,6 +95,7 @@ private:
 				else
 				{
 					UnregisterClientBooking(booking.clientId);
+					m_bookedRoomsWithinTimeSpan -= booking.roomCount;
 					return false;
 				}
 			});
@@ -104,101 +112,17 @@ private:
 		}
 	}
 
-	Dictionary<ClientId, unsigned> m_clientBookingCount;
-	Time m_statisticsTimeSpan;
-	unsigned m_distinctClientCountWithinTimeSpan = 0;
-
-	std::deque<Booking> m_bookings;
-	size_t m_historyPointer = 0;
-};
-
-class RoomBookingContext final
-{
-public:
-	explicit RoomBookingContext(Time timeSpan) noexcept
-		: m_timeSpan(timeSpan)
-	{
-	}
-
-	void Book(Time time, RoomCount roomCount)
-	{
-		AddRoomBookings(time, roomCount);
-		RemoveBookingsStatsUpTo(time - m_timeSpan);
-	}
-
-	RoomCount GetBookedRoomCountWithinTimeSpan() const noexcept
-	{
-		return m_bookedRoomsWithinTimeSpan;
-	}
-
-private:
-	struct Booking
-	{
-		explicit Booking(Time time, RoomCount roomCount = 0) noexcept
-			: time(time)
-			, roomCount(roomCount)
-		{
-		}
-		Time time;
-		RoomCount roomCount;
-	};
-
-	void RemoveBookingsStatsUpTo(Time time) noexcept
-	{
-		auto endOfOutdatedBookings = std::find_if(m_bookings.begin(), m_bookings.end(),
-			[time, this](auto&& booking) {
-				if (booking.time > time)
-				{
-					return true;
-				}
-				else
-				{
-					m_bookedRoomsWithinTimeSpan -= booking.roomCount;
-					return false;
-				}
-			});
-		m_bookings.erase(m_bookings.begin(), endOfOutdatedBookings);
-	}
-
-	void AddRoomBookings(Time time, RoomCount roomCount)
-	{
-		m_bookings.emplace_back(time, roomCount);
-		m_bookedRoomsWithinTimeSpan += roomCount;
-	}
-
 	Time m_timeSpan;
-	std::deque<Booking> m_bookings;
+	unsigned m_distinctClientCountWithinTimeSpan = 0;
 	RoomCount m_bookedRoomsWithinTimeSpan = 0;
-};
 
-class HotelBookings final
-{
-public:
-	explicit HotelBookings(Time statisticTimeSpan)
-		: m_clientBookings(statisticTimeSpan)
-		, m_roomBookings(statisticTimeSpan)
-	{
-	}
+	std::deque<Booking> m_bookings;
+	Dictionary<ClientId, unsigned> m_clientBookingCount;
 
-	void Book(Time time, ClientId clientId, RoomCount roomCount)
-	{
-		m_clientBookings.Book(time, clientId);
-		m_roomBookings.Book(time, roomCount);
-	}
-
-	unsigned GetDistinctClientCountWithinTimeSpan() const noexcept
-	{
-		return m_clientBookings.GetDistinctClientCountWithinTimeSpan();
-	}
-
-	RoomCount GetBookedRoomCountWithinTimeSpan() const noexcept
-	{
-		return m_roomBookings.GetBookedRoomCountWithinTimeSpan();
-	}
-
-private:
+	/*
 	ClientBookingContext m_clientBookings;
 	RoomBookingContext m_roomBookings;
+	*/
 };
 
 class BookingService final
