@@ -1,4 +1,5 @@
 #include "HotelBookings.h"
+#include <algorithm>
 
 HotelBookings::HotelBookings(Time timeSpan)
 	: m_timeSpan(timeSpan)
