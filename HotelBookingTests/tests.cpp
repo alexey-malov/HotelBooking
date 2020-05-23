@@ -176,3 +176,24 @@ SCENARIO("Booking Service tests")
 	CHECK(service.GetBookedRoomCountWithinTimeSpan(hotel2) == 0);
 	CHECK(service.GetDistinctClientCountWithinTimeSpan(hotel2) == 0);
 }
+
+SCENARIO("User Interface")
+{
+	BookingService service(5);
+	istringstream input(R"(9
+BOOK -3 hilton 1234567890 8
+CLIENTS hilton
+ROOMS hilton
+BOOK 0 hilton 5 1
+CLIENTS hilton
+ROOMS hilton
+BOOK 2 hilton 1234567890 3
+CLIENTS hilton
+ROOMS hilton
+)");
+	ostringstream output;
+
+	UserInterface ui(input, output, service);
+	ui.Run();
+	CHECK(output.str() == "1\n8\n2\n9\n2\n4\n"s);
+}
