@@ -1,5 +1,7 @@
 #include "stdafx.h"
 #include "../HotelBooking/HotelBooking.h"
+#include <random>
+#include <chrono>
 
 using namespace std;
 using namespace std::literals;
@@ -196,4 +198,64 @@ ROOMS hilton
 	UserInterface ui(input, output, service);
 	ui.Run();
 	CHECK(output.str() == "1\n8\n2\n9\n2\n4\n"s);
+}
+
+vector<string> GenerateHotels(unsigned count)
+{
+	const auto alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890"s;
+	vector<string> hotels;
+	hotels.reserve(count);
+	uniform_int_distribution<size_t> dist(0, alphabet.size() - 1);
+	mt19937 gen;
+	for (unsigned i = 0; i < count; ++i)
+	{
+		string name;
+		name.reserve(12);
+		for (unsigned j = 0; j < 12; ++j)
+		{
+			name += alphabet[dist(gen)];
+		}
+		hotels.push_back(name);
+	}
+	return hotels;
+}
+
+vector<ClientId> GenerateClientIds(unsigned count)
+{
+	vector<ClientId> clients;
+	clients.reserve(count);
+	uniform_int_distribution<unsigned> dist(1, 999'999'999);
+	mt19937 gen;
+	for (unsigned i = 0; i < count; ++i)
+	{
+		clients.push_back(dist(gen));
+	}
+	return clients;
+}
+
+SCENARIO("Benchmark")
+{
+	auto hotels = GenerateHotels(100'000);
+	auto clients = GenerateClientIds(20'000);
+	mt19937 gen;
+	uniform_int_distribution<size_t> randHotel(0, hotels.size() - 1);
+	uniform_int_distribution<size_t> randClient(0, clients.size() - 1);
+	uniform_int_distribution<RoomCount> randRoomCount(1, 1000);
+	uniform_int_distribution<Time> randTimeDelta(0, 1000);
+	Time time = 0;
+
+	BookingService service;
+
+	const auto beginTime = chrono::steady_clock::now();
+	for (unsigned i = 0; i < 100'000; ++i)
+	{
+		auto hotel = hotels[randHotel(gen)];
+		auto client = clients[randClient(gen)];
+		auto roomCount = randRoomCount(gen);
+		time += randTimeDelta(gen);
+		service.Book(time, hotel, client, roomCount);
+	}
+	const auto endTime = chrono::steady_clock::now();
+	const auto duration = endTime - beginTime;
+	std::cout << "Duration: " << std::chrono::duration_cast<chrono::milliseconds>(duration).count() << "\n";
 }
