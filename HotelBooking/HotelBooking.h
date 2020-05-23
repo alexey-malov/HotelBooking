@@ -28,7 +28,7 @@ public:
 		UnregisterBookinsUpTo(time - m_statisticsTimeSpan);
 	}
 
-	unsigned GetDistinctClientCountWithinTimespan() const
+	unsigned GetDistinctClientCountWithinTimeSpan() const
 	{
 		return m_distinctClientCountWithinTimeSpan;
 	}
@@ -95,13 +95,13 @@ public:
 	{
 	}
 
-	void Book(Time time, unsigned roomCount)
+	void Book(Time time, RoomCount roomCount)
 	{
 		AddRoomBookings(time, roomCount);
 		RemoveBookingsStatsUpTo(time - m_timeSpan);
 	}
 
-	unsigned GetBookedRoomCountWithinTimeSpan() const
+	RoomCount GetBookedRoomCountWithinTimeSpan() const
 	{
 		return GetBookedRoomCountWithinTimeSpanImpl();
 	}
@@ -109,13 +109,13 @@ public:
 private:
 	struct AccumulatedRoomBooking
 	{
-		explicit AccumulatedRoomBooking(Time time, unsigned accumulatedRoomCount = 0)
+		explicit AccumulatedRoomBooking(Time time, RoomCount accumulatedRoomCount = 0)
 			: time(time)
 			, accumulatedRoomCount(accumulatedRoomCount)
 		{
 		}
 		Time time;
-		unsigned accumulatedRoomCount;
+		RoomCount accumulatedRoomCount;
 	};
 
 	void RemoveBookingsStatsUpTo(Time time)
@@ -127,7 +127,7 @@ private:
 		m_statistingStartPos = it - m_accumulatedRoomBookings.begin();
 	}
 
-	unsigned GetBookedRoomCountWithinTimeSpanImpl() const
+	RoomCount GetBookedRoomCountWithinTimeSpanImpl() const
 	{
 		if (m_accumulatedRoomBookings.empty())
 		{
@@ -140,7 +140,7 @@ private:
 		return m_accumulatedRoomBookings.back().accumulatedRoomCount - roomsToIgnore;
 	}
 
-	void AddRoomBookings(Time time, unsigned roomCount)
+	void AddRoomBookings(Time time, RoomCount roomCount)
 	{
 		GetAccumulatedBooking(time).accumulatedRoomCount += roomCount;
 	}
@@ -182,10 +182,10 @@ public:
 
 	unsigned GetDistinctClientCountWithinTimeSpan() const
 	{
-		return m_clientBookings.GetDistinctClientCountWithinTimespan();
+		return m_clientBookings.GetDistinctClientCountWithinTimeSpan();
 	}
 
-	unsigned GetBookedRoomCountWithinTimeSpan() const
+	RoomCount GetBookedRoomCountWithinTimeSpan() const
 	{
 		return m_roomBookings.GetBookedRoomCountWithinTimeSpan();
 	}
@@ -214,7 +214,7 @@ public:
 		return optHotelBookings ? optHotelBookings->GetDistinctClientCountWithinTimeSpan() : 0;
 	}
 
-	unsigned GetBookedRoomCountWithinTimeSpan(const std::string& hotelName) const
+	RoomCount GetBookedRoomCountWithinTimeSpan(const std::string& hotelName) const
 	{
 		auto optHotelBookings = FindHotelBookings(hotelName);
 		return optHotelBookings ? optHotelBookings->GetBookedRoomCountWithinTimeSpan() : 0;

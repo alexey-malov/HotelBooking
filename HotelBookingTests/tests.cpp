@@ -14,11 +14,11 @@ SCENARIO("Client Booking context")
 	const ClientId client4 = 4;
 	WHEN("New client books")
 	{
-		auto clientCount = bookings.GetDistinctClientCountWithinTimespan();
+		auto clientCount = bookings.GetDistinctClientCountWithinTimeSpan();
 		bookings.Book(1, client1);
 		THEN("client count must be incremented by 1")
 		{
-			CHECK(bookings.GetDistinctClientCountWithinTimespan() == clientCount + 1);
+			CHECK(bookings.GetDistinctClientCountWithinTimeSpan() == clientCount + 1);
 		}
 	}
 
@@ -26,11 +26,11 @@ SCENARIO("Client Booking context")
 	{
 		bookings.Book(1, client1);
 		bookings.Book(1, client2);
-		auto clientCount = bookings.GetDistinctClientCountWithinTimespan();
+		auto clientCount = bookings.GetDistinctClientCountWithinTimeSpan();
 		bookings.Book(1, client1);
 		THEN("client count must stay the same")
 		{
-			CHECK(bookings.GetDistinctClientCountWithinTimespan() == clientCount);
+			CHECK(bookings.GetDistinctClientCountWithinTimeSpan() == clientCount);
 		}
 	}
 
@@ -43,20 +43,20 @@ SCENARIO("Client Booking context")
 		bookings.Book(t0 + timeSpan - 1, client3);
 
 		// [c1],[c2,c2],[c3]
-		const auto clientCount = bookings.GetDistinctClientCountWithinTimespan();
+		const auto clientCount = bookings.GetDistinctClientCountWithinTimeSpan();
 		bookings.Book(t0 + timeSpan, client4);
 		THEN("it is removed from statistics")
 		{
 			// [[c2], [c3], [c4]]
-			CHECK(bookings.GetDistinctClientCountWithinTimespan() == clientCount);
+			CHECK(bookings.GetDistinctClientCountWithinTimeSpan() == clientCount);
 
 			bookings.Book(t0 + timeSpan - 1 + (timeSpan - 1), client4);
 			// Still [[c2], [c3], [c4]]
-			CHECK(bookings.GetDistinctClientCountWithinTimespan() == clientCount);
+			CHECK(bookings.GetDistinctClientCountWithinTimeSpan() == clientCount);
 
 			bookings.Book(t0 + timeSpan - 1 + timeSpan, client4);
 			// Still [c4]]
-			CHECK(bookings.GetDistinctClientCountWithinTimespan() == 1);
+			CHECK(bookings.GetDistinctClientCountWithinTimeSpan() == 1);
 		}
 	}
 }
