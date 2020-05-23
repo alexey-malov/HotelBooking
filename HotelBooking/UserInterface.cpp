@@ -33,6 +33,7 @@ void UserInterface::Run()
 			{
 				throw runtime_error("BOOK query syntax error");
 			}
+
 			m_service.Book(time, hotelName, clientId, roomCount);
 		}
 		else if (query == "CLIENTS"sv)
@@ -41,6 +42,7 @@ void UserInterface::Run()
 			{
 				throw runtime_error("CLIENTS query syntax error");
 			}
+
 			m_output << m_service.GetDistinctClientCountWithinTimeSpan(hotelName) << "\n";
 		}
 		else if (query == "ROOMS"sv)
@@ -49,6 +51,7 @@ void UserInterface::Run()
 			{
 				throw runtime_error("ROOMS query syntax error");
 			}
+
 			m_output << m_service.GetBookedRoomCountWithinTimeSpan(hotelName) << "\n";
 		}
 		else
