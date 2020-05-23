@@ -46,9 +46,9 @@ public:
 	}
 
 private:
-	struct ClientBooking
+	struct Booking
 	{
-		ClientBooking(Time time, ClientId clientId) noexcept
+		Booking(Time time, ClientId clientId) noexcept
 			: time(time)
 			, clientId(clientId)
 		{
@@ -59,7 +59,7 @@ private:
 
 	void RegisterNewBooking(Time time, ClientId clientId)
 	{
-		m_bookingHistory.emplace_back(time, clientId);
+		m_bookings.emplace_back(time, clientId);
 
 		try
 		{
@@ -72,23 +72,26 @@ private:
 		catch (...)
 		{
 			// Rollback booking history changes if m_clientBookingCount[] throws
-			m_bookingHistory.pop_back();
+			m_bookings.pop_back();
 			throw;
 		}
 	}
 
 	void UnregisterBookingsUpTo(Time time) noexcept
 	{
-		while (m_historyPointer < m_bookingHistory.size())
-		{
-			const auto& booking = m_bookingHistory[m_historyPointer];
-			if (booking.time > time)
-			{
-				break;
-			}
-			UnregisterClientBooking(booking.clientId);
-			++m_historyPointer;
-		}
+		auto endOfOutdatedBookings = std::find_if(m_bookings.begin(), m_bookings.end(),
+			[time, this](auto&& booking) {
+				if (booking.time > time)
+				{
+					return true;
+				}
+				else
+				{
+					UnregisterClientBooking(booking.clientId);
+					return false;
+				}
+			});
+		m_bookings.erase(m_bookings.begin(), endOfOutdatedBookings);
 	}
 
 	void UnregisterClientBooking(ClientId clientId) noexcept
@@ -105,7 +108,7 @@ private:
 	Time m_statisticsTimeSpan;
 	unsigned m_distinctClientCountWithinTimeSpan = 0;
 
-	std::vector<ClientBooking> m_bookingHistory;
+	std::deque<Booking> m_bookings;
 	size_t m_historyPointer = 0;
 };
 
@@ -129,9 +132,9 @@ public:
 	}
 
 private:
-	struct RoomBooking
+	struct Booking
 	{
-		explicit RoomBooking(Time time, RoomCount roomCount = 0) noexcept
+		explicit Booking(Time time, RoomCount roomCount = 0) noexcept
 			: time(time)
 			, roomCount(roomCount)
 		{
@@ -164,7 +167,7 @@ private:
 	}
 
 	Time m_timeSpan;
-	std::deque<RoomBooking> m_bookings;
+	std::deque<Booking> m_bookings;
 	RoomCount m_bookedRoomsWithinTimeSpan = 0;
 };
 
