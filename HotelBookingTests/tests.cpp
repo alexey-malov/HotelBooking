@@ -247,7 +247,7 @@ SCENARIO("Benchmark")
 	BookingService service;
 
 	const auto beginTime = chrono::steady_clock::now();
-	for (unsigned i = 0; i < 100'000; ++i)
+	for (unsigned i = 0; i < 1'000'000; ++i)
 	{
 		auto hotel = hotels[randHotel(gen)];
 		auto client = clients[randClient(gen)];

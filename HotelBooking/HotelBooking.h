@@ -59,15 +59,22 @@ private:
 
 	void RegisterNewBooking(Time time, ClientId clientId)
 	{
-		// Reserve memory to avoid reallocation in emplace_back and provide strong exception guarantee
-		m_bookingHistory.reserve(m_bookingHistory.size() + 1);
-
-		auto& clientBookingCounter = m_clientBookingCount[clientId];
-		if (++clientBookingCounter == 1) // new client registered
-		{
-			++m_distinctClientCountWithinTimeSpan;
-		}
 		m_bookingHistory.emplace_back(time, clientId);
+
+		try
+		{
+			auto& clientBookingCounter = m_clientBookingCount[clientId];
+			if (++clientBookingCounter == 1) // new client registered
+			{
+				++m_distinctClientCountWithinTimeSpan;
+			}
+		}
+		catch (...)
+		{
+			// Rollback booking history changes if m_clientBookingCount[] throws
+			m_bookingHistory.pop_back();
+			throw;
+		}
 	}
 
 	void UnregisterBookingsUpTo(Time time) noexcept
