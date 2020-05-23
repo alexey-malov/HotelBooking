@@ -25,7 +25,7 @@ public:
 	void Book(Time time, ClientId clientId)
 	{
 		RegisterNewBooking(time, clientId);
-		UnregisterBookinsUpTo(time - m_statisticsTimeSpan);
+		UnregisterBookingsUpTo(time - m_statisticsTimeSpan);
 	}
 
 	unsigned GetDistinctClientCountWithinTimeSpan() const
@@ -55,7 +55,7 @@ private:
 		m_bookingHistory.emplace_back(time, clientId);
 	}
 
-	void UnregisterBookinsUpTo(Time time)
+	void UnregisterBookingsUpTo(Time time)
 	{
 		while (m_historyPointer < m_bookingHistory.size())
 		{
