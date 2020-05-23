@@ -90,7 +90,7 @@ private:
 class RoomBookingContext final
 {
 public:
-	explicit RoomBookingContext(Time timeSpan)
+	explicit RoomBookingContext(Time timeSpan) noexcept
 		: m_timeSpan(timeSpan)
 	{
 	}
@@ -101,7 +101,7 @@ public:
 		RemoveBookingsStatsUpTo(time - m_timeSpan);
 	}
 
-	RoomCount GetBookedRoomCountWithinTimeSpan() const
+	RoomCount GetBookedRoomCountWithinTimeSpan() const noexcept
 	{
 		return GetBookedRoomCountWithinTimeSpanImpl();
 	}
@@ -109,7 +109,7 @@ public:
 private:
 	struct AccumulatedRoomBooking
 	{
-		explicit AccumulatedRoomBooking(Time time, RoomCount accumulatedRoomCount = 0)
+		explicit AccumulatedRoomBooking(Time time, RoomCount accumulatedRoomCount = 0) noexcept
 			: time(time)
 			, accumulatedRoomCount(accumulatedRoomCount)
 		{
@@ -118,7 +118,7 @@ private:
 		RoomCount accumulatedRoomCount;
 	};
 
-	void RemoveBookingsStatsUpTo(Time time)
+	void RemoveBookingsStatsUpTo(Time time) noexcept
 	{
 		auto it = std::find_if(m_accumulatedRoomBookings.begin() + m_statistingStartPos,
 			m_accumulatedRoomBookings.end(), [time](auto&& booking) {
@@ -127,7 +127,7 @@ private:
 		m_statistingStartPos = it - m_accumulatedRoomBookings.begin();
 	}
 
-	RoomCount GetBookedRoomCountWithinTimeSpanImpl() const
+	RoomCount GetBookedRoomCountWithinTimeSpanImpl() const noexcept
 	{
 		if (m_accumulatedRoomBookings.empty())
 		{
@@ -180,12 +180,12 @@ public:
 		m_roomBookings.Book(time, roomCount);
 	}
 
-	unsigned GetDistinctClientCountWithinTimeSpan() const
+	unsigned GetDistinctClientCountWithinTimeSpan() const noexcept
 	{
 		return m_clientBookings.GetDistinctClientCountWithinTimeSpan();
 	}
 
-	RoomCount GetBookedRoomCountWithinTimeSpan() const
+	RoomCount GetBookedRoomCountWithinTimeSpan() const noexcept
 	{
 		return m_roomBookings.GetBookedRoomCountWithinTimeSpan();
 	}
