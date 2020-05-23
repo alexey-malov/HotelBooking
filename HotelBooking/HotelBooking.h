@@ -208,20 +208,20 @@ public:
 		GetHotelBookings(hotelName).Book(time, clientId, roomCount);
 	}
 
-	unsigned GetDistinctClientCountWithinTimeSpan(const std::string& hotelName) const
+	unsigned GetDistinctClientCountWithinTimeSpan(const std::string& hotelName) const noexcept
 	{
 		auto optHotelBookings = FindHotelBookings(hotelName);
 		return optHotelBookings ? optHotelBookings->GetDistinctClientCountWithinTimeSpan() : 0;
 	}
 
-	RoomCount GetBookedRoomCountWithinTimeSpan(const std::string& hotelName) const
+	RoomCount GetBookedRoomCountWithinTimeSpan(const std::string& hotelName) const noexcept
 	{
 		auto optHotelBookings = FindHotelBookings(hotelName);
 		return optHotelBookings ? optHotelBookings->GetBookedRoomCountWithinTimeSpan() : 0;
 	}
 
 private:
-	const HotelBookings* FindHotelBookings(const std::string& hotelName) const
+	const HotelBookings* FindHotelBookings(const std::string& hotelName) const noexcept
 	{
 		auto it = m_hotelBookings.find(hotelName);
 		return it != m_hotelBookings.end() ? &(it->second) : nullptr;
