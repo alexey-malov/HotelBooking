@@ -206,33 +206,38 @@ public:
 
 	void Book(Time time, const std::string& hotelName, ClientId clientId, RoomCount roomCount)
 	{
+		GetHotelBookings(hotelName).Book(time, clientId, roomCount);
+	}
+
+	unsigned GetDistinctClientCountWithinTimeSpan(const std::string& hotelName) const
+	{
+		auto optHotelBookings = FindHotelBookings(hotelName);
+		return optHotelBookings ? optHotelBookings->GetDistinctClientCountWithinTimeSpan() : 0;
+	}
+
+	unsigned GetBookedRoomCountWithinTimeSpan(const std::string& hotelName) const
+	{
+		auto optHotelBookings = FindHotelBookings(hotelName);
+		return optHotelBookings ? optHotelBookings->GetBookedRoomCountWithinTimeSpan() : 0;
+	}
+
+private:
+	const HotelBookings* FindHotelBookings(const std::string& hotelName) const
+	{
+		auto it = m_hotelBookings.find(hotelName);
+		return it != m_hotelBookings.end() ? &(it->second) : nullptr;
+	}
+
+	HotelBookings& GetHotelBookings(const std::string& hotelName)
+	{
 		auto it = m_hotelBookings.find(hotelName);
 		if (it == m_hotelBookings.end())
 		{
 			it = m_hotelBookings.emplace(hotelName, m_statisticTimeSpan).first;
 		}
-		it->second.Book(time, clientId, roomCount);
+		return it->second;
 	}
 
-	unsigned GetDistinctClientCountWithinTimeSpan(const std::string& hotelName) const
-	{
-		if (auto it = m_hotelBookings.find(hotelName); it != m_hotelBookings.end())
-		{
-			return it->second.GetDistinctClientCountWithinTimeSpan();
-		}
-		return 0; // Not bookings in this hotel yet
-	}
-
-	unsigned GetBookedRoomCountWithinTimeSpan(const std::string& hotelName) const
-	{
-		if (auto it = m_hotelBookings.find(hotelName); it != m_hotelBookings.end())
-		{
-			return it->second.GetBookedRoomCountWithinTimeSpan();
-		}
-		return 0; // Not bookings in this hotel yet
-	}
-
-private:
 	Time m_statisticTimeSpan;
 	std::unordered_map<std::string, HotelBookings> m_hotelBookings;
 };

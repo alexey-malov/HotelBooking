@@ -1,6 +1,9 @@
 #include "stdafx.h"
 #include "../HotelBooking/HotelBooking.h"
 
+using namespace std;
+using namespace std::literals;
+
 SCENARIO("Client Booking context")
 {
 	const Time timeSpan = 3;
@@ -117,7 +120,6 @@ SCENARIO("Hotel bookings")
 	const ClientId client3 = 1234;
 	const ClientId client4 = 100500;
 
-
 	CHECK(bookings.GetDistinctClientCountWithinTimeSpan() == 0);
 	CHECK(bookings.GetBookedRoomCountWithinTimeSpan() == 0);
 
@@ -152,6 +154,25 @@ SCENARIO("Hotel bookings")
 
 SCENARIO("Booking Service tests")
 {
+	const Time timeSpan = 5;
+
+	const ClientId client1 = 34;
+	const ClientId client2 = 443;
+	const ClientId client3 = 1234;
+	const ClientId client4 = 100500;
+
+	const auto hotel1 = "Hilton"s;
+	const auto hotel2 = "Radisoon"s;
+	const auto hotel3 = "HolidayInn"s;
+
 	BookingService service;
 
+	CHECK(service.GetBookedRoomCountWithinTimeSpan(hotel1) == 0);
+	CHECK(service.GetDistinctClientCountWithinTimeSpan(hotel2) == 0);
+
+	service.Book(0, hotel1, client3, 3);
+	CHECK(service.GetBookedRoomCountWithinTimeSpan(hotel1) == 3);
+	CHECK(service.GetDistinctClientCountWithinTimeSpan(hotel1) == 1);
+	CHECK(service.GetBookedRoomCountWithinTimeSpan(hotel2) == 0);
+	CHECK(service.GetDistinctClientCountWithinTimeSpan(hotel2) == 0);
 }
