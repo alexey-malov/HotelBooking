@@ -34,7 +34,7 @@ void Run(istream& input, ostream& output, BookingService& service)
 			{
 				throw runtime_error("CLIENTS query syntax error");
 			}
-			output << service.GetDistinctClientCountWithinLastDay(hotelName) << "\n";
+			output << service.GetDistinctClientCountWithinTimeSpan(hotelName) << "\n";
 		}
 		else if (query == "ROOMS"sv)
 		{
@@ -42,7 +42,7 @@ void Run(istream& input, ostream& output, BookingService& service)
 			{
 				throw runtime_error("ROOMS query syntax error");
 			}
-			output << service.GetBookedRoomCountWithinLastDay(hotelName) << "\n";
+			output << service.GetBookedRoomCountWithinTimeSpan(hotelName) << "\n";
 		}
 		else
 		{

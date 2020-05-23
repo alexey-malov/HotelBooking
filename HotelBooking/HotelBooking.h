@@ -175,18 +175,20 @@ public:
 	{
 	}
 
-	void Book(Time /*time*/, ClientId /*clientId*/, RoomCount /*roomCount*/)
+	void Book(Time time, ClientId clientId, RoomCount roomCount)
 	{
+		m_clientBookings.Book(time, clientId);
+		m_roomBookings.Book(time, roomCount);
 	}
 
-	unsigned GetDistinctClientCountWithinLastDay() const
+	unsigned GetDistinctClientCountWithinTimeSpan() const
 	{
-		return 0;
+		return m_clientBookings.GetDistinctClientCountWithinTimespan();
 	}
 
-	unsigned GetBookedRoomCountWithinLastDay() const
+	unsigned GetBookedRoomCountWithinTimeSpan() const
 	{
-		return 0;
+		return m_roomBookings.GetBookedRoomCountWithinTimeSpan();
 	}
 
 private:
@@ -212,20 +214,20 @@ public:
 		it->second.Book(time, clientId, roomCount);
 	}
 
-	unsigned GetDistinctClientCountWithinLastDay(const std::string& hotelName) const
+	unsigned GetDistinctClientCountWithinTimeSpan(const std::string& hotelName) const
 	{
 		if (auto it = m_hotelBookings.find(hotelName); it != m_hotelBookings.end())
 		{
-			return it->second.GetDistinctClientCountWithinLastDay();
+			return it->second.GetDistinctClientCountWithinTimeSpan();
 		}
 		return 0; // Not bookings in this hotel yet
 	}
 
-	unsigned GetBookedRoomCountWithinLastDay(const std::string& hotelName) const
+	unsigned GetBookedRoomCountWithinTimeSpan(const std::string& hotelName) const
 	{
 		if (auto it = m_hotelBookings.find(hotelName); it != m_hotelBookings.end())
 		{
-			return it->second.GetBookedRoomCountWithinLastDay();
+			return it->second.GetBookedRoomCountWithinTimeSpan();
 		}
 		return 0; // Not bookings in this hotel yet
 	}
