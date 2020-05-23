@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <deque>
 #include <iostream>
 #include <map>
 #include <sstream>
@@ -15,8 +16,7 @@
 using namespace std::literals;
 using Time = int64_t;
 using ClientId = uint32_t;
-using RoomCount = uint64_t;
-
+using RoomCount = uint32_t;
 
 #ifdef USE_UNORDERED_MAP_AS_DICTIONARY
 template <typename Key, typename Value>
@@ -125,66 +125,47 @@ public:
 
 	RoomCount GetBookedRoomCountWithinTimeSpan() const noexcept
 	{
-		return GetBookedRoomCountWithinTimeSpanImpl();
+		return m_bookedRoomsWithinTimeSpan;
 	}
 
 private:
-	struct AccumulatedRoomBooking
+	struct RoomBooking
 	{
-		explicit AccumulatedRoomBooking(Time time, RoomCount accumulatedRoomCount = 0) noexcept
+		explicit RoomBooking(Time time, RoomCount roomCount = 0) noexcept
 			: time(time)
-			, accumulatedRoomCount(accumulatedRoomCount)
+			, roomCount(roomCount)
 		{
 		}
 		Time time;
-		RoomCount accumulatedRoomCount;
+		RoomCount roomCount;
 	};
 
 	void RemoveBookingsStatsUpTo(Time time) noexcept
 	{
-		auto it = std::find_if(m_accumulatedRoomBookings.begin() + m_statistingStartPos,
-			m_accumulatedRoomBookings.end(), [time](auto&& booking) {
-				return booking.time > time;
+		auto endOfOutdatedBookings = std::find_if(m_bookings.begin(), m_bookings.end(),
+			[time, this](auto&& booking) {
+				if (booking.time > time)
+				{
+					return true;
+				}
+				else
+				{
+					m_bookedRoomsWithinTimeSpan -= booking.roomCount;
+					return false;
+				}
 			});
-		m_statistingStartPos = it - m_accumulatedRoomBookings.begin();
-	}
-
-	RoomCount GetBookedRoomCountWithinTimeSpanImpl() const noexcept
-	{
-		if (m_accumulatedRoomBookings.empty())
-		{
-			return 0;
-		}
-		assert(m_statistingStartPos < m_accumulatedRoomBookings.size());
-		auto roomsToIgnore = (m_statistingStartPos > 0)
-			? m_accumulatedRoomBookings[m_statistingStartPos - 1].accumulatedRoomCount
-			: 0;
-		return m_accumulatedRoomBookings.back().accumulatedRoomCount - roomsToIgnore;
+		m_bookings.erase(m_bookings.begin(), endOfOutdatedBookings);
 	}
 
 	void AddRoomBookings(Time time, RoomCount roomCount)
 	{
-		GetAccumulatedBooking(time).accumulatedRoomCount += roomCount;
-	}
-
-	AccumulatedRoomBooking& GetAccumulatedBooking(Time time)
-	{
-		if (!m_accumulatedRoomBookings.empty() && m_accumulatedRoomBookings.back().time == time)
-		{
-			return m_accumulatedRoomBookings.back();
-		}
-
-		// According to specification new events MUST not preceed existing ones
-		assert(m_accumulatedRoomBookings.empty() || m_accumulatedRoomBookings.back().time < time);
-		auto currentRoomCount = !m_accumulatedRoomBookings.empty()
-			? m_accumulatedRoomBookings.back().accumulatedRoomCount
-			: 0;
-		return m_accumulatedRoomBookings.emplace_back(time, currentRoomCount);
+		m_bookings.emplace_back(time, roomCount);
+		m_bookedRoomsWithinTimeSpan += roomCount;
 	}
 
 	Time m_timeSpan;
-	std::vector<AccumulatedRoomBooking> m_accumulatedRoomBookings;
-	size_t m_statistingStartPos = 0;
+	std::deque<RoomBooking> m_bookings;
+	RoomCount m_bookedRoomsWithinTimeSpan = 0;
 };
 
 class HotelBookings final
