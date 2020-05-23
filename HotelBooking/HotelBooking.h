@@ -28,7 +28,7 @@ public:
 		UnregisterBookingsUpTo(time - m_statisticsTimeSpan);
 	}
 
-	unsigned GetDistinctClientCountWithinTimeSpan() const
+	unsigned GetDistinctClientCountWithinTimeSpan() const noexcept
 	{
 		return m_distinctClientCountWithinTimeSpan;
 	}
@@ -36,7 +36,7 @@ public:
 private:
 	struct ClientBooking
 	{
-		ClientBooking(Time time, ClientId clientId)
+		ClientBooking(Time time, ClientId clientId) noexcept
 			: time(time)
 			, clientId(clientId)
 		{
@@ -55,7 +55,7 @@ private:
 		m_bookingHistory.emplace_back(time, clientId);
 	}
 
-	void UnregisterBookingsUpTo(Time time)
+	void UnregisterBookingsUpTo(Time time) noexcept
 	{
 		while (m_historyPointer < m_bookingHistory.size())
 		{
@@ -69,7 +69,7 @@ private:
 		}
 	}
 
-	void UnregisterClientBooking(ClientId clientId)
+	void UnregisterClientBooking(ClientId clientId) noexcept
 	{
 		auto& clientBookingCount = m_clientBookingCount[clientId];
 		assert(clientBookingCount > 0);
