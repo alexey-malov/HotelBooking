@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <cassert>
 #include <iostream>
 #include <sstream>
@@ -24,11 +25,11 @@ public:
 
 	void Book(Time time, ClientId clientId)
 	{
-		UnregisterBookinsUpTo(time - m_statisticsTimeSpan);
 		RegisterNewBooking(time, clientId);
+		UnregisterBookinsUpTo(time - m_statisticsTimeSpan);
 	}
 
-	unsigned GetDistinctClientCountWithingTimespan() const
+	unsigned GetDistinctClientCountWithinTimespan() const
 	{
 		return m_distinctClientCountWithinTimeSpan;
 	}
@@ -87,9 +88,93 @@ private:
 	size_t m_historyPointer = 0;
 };
 
+class RoomBookingContext final
+{
+public:
+	explicit RoomBookingContext(Time timeSpan)
+		: m_timeSpan(timeSpan)
+	{
+	}
+
+	void Book(Time time, unsigned roomCount)
+	{
+		AddRoomBookings(time, roomCount);
+		RemoveBookingsStatsUpTo(time - m_timeSpan);
+	}
+
+	unsigned GetBookedRoomCountWithinTimeSpan() const
+	{
+		return GetBookedRoomCountWithinTimeSpanImpl();
+	}
+
+private:
+	struct AccumulatedRoomBooking
+	{
+		explicit AccumulatedRoomBooking(Time time, unsigned accumulatedRoomCount = 0)
+			: time(time)
+			, accumulatedRoomCount(accumulatedRoomCount)
+		{
+		}
+		Time time;
+		unsigned accumulatedRoomCount;
+	};
+
+	void RemoveBookingsStatsUpTo(Time time)
+	{
+		auto it = std::find_if(m_accumulatedRoomBookings.begin() + m_statistingStartPos,
+			m_accumulatedRoomBookings.end(), [time](auto&& booking) {
+				return booking.time > time;
+			});
+		m_statistingStartPos = it - m_accumulatedRoomBookings.begin();
+	}
+
+	unsigned GetBookedRoomCountWithinTimeSpanImpl() const
+	{
+		if (m_accumulatedRoomBookings.empty())
+		{
+			return 0;
+		}
+		assert(m_statistingStartPos < m_accumulatedRoomBookings.size());
+		auto roomsToIgnore = (m_statistingStartPos > 0)
+			? m_accumulatedRoomBookings[m_statistingStartPos - 1].accumulatedRoomCount
+			: 0;
+		return m_accumulatedRoomBookings.back().accumulatedRoomCount - roomsToIgnore;
+	}
+
+	void AddRoomBookings(Time time, unsigned roomCount)
+	{
+		GetAccumulatedBooking(time).accumulatedRoomCount += roomCount;
+	}
+
+	AccumulatedRoomBooking& GetAccumulatedBooking(Time time)
+	{
+		if (!m_accumulatedRoomBookings.empty() && m_accumulatedRoomBookings.back().time == time)
+		{
+			return m_accumulatedRoomBookings.back();
+		}
+
+		// According to specification new events MUST not preceed existing ones
+		assert(m_accumulatedRoomBookings.empty() || m_accumulatedRoomBookings.back().time < time);
+		auto currentRoomCount = !m_accumulatedRoomBookings.empty()
+			? m_accumulatedRoomBookings.back().accumulatedRoomCount
+			: 0;
+		return m_accumulatedRoomBookings.emplace_back(time, currentRoomCount);
+	}
+
+	Time m_timeSpan;
+	std::vector<AccumulatedRoomBooking> m_accumulatedRoomBookings;
+	size_t m_statistingStartPos = 0;
+};
+
 class HotelBookings final
 {
 public:
+	explicit HotelBookings(Time statisticTimeSpan)
+		: m_clientBookings(statisticTimeSpan)
+		, m_roomBookings(statisticTimeSpan)
+	{
+	}
+
 	void Book(Time /*time*/, ClientId /*clientId*/, RoomCount /*roomCount*/)
 	{
 	}
@@ -103,14 +188,28 @@ public:
 	{
 		return 0;
 	}
+
+private:
+	ClientBookingContext m_clientBookings;
+	RoomBookingContext m_roomBookings;
 };
 
 class BookingService final
 {
 public:
+	explicit BookingService(Time statisticTimeSpan = 24 * 60 * 60)
+		: m_statisticTimeSpan(statisticTimeSpan)
+	{
+	}
+
 	void Book(Time time, const std::string& hotelName, ClientId clientId, RoomCount roomCount)
 	{
-		m_hotelBookings[hotelName].Book(time, clientId, roomCount);
+		auto it = m_hotelBookings.find(hotelName);
+		if (it == m_hotelBookings.end())
+		{
+			it = m_hotelBookings.emplace(hotelName, m_statisticTimeSpan).first;
+		}
+		it->second.Book(time, clientId, roomCount);
 	}
 
 	unsigned GetDistinctClientCountWithinLastDay(const std::string& hotelName) const
@@ -132,5 +231,6 @@ public:
 	}
 
 private:
+	Time m_statisticTimeSpan;
 	std::unordered_map<std::string, HotelBookings> m_hotelBookings;
 };
