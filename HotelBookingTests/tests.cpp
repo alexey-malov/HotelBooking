@@ -9,6 +9,7 @@
 #include <sstream>
 
 using namespace std;
+using namespace std::chrono;
 using namespace std::literals;
 
 SCENARIO("Hotel bookings")
@@ -104,12 +105,13 @@ vector<string> GenerateHotels(unsigned count)
 	vector<string> hotels;
 	hotels.reserve(count);
 	uniform_int_distribution<size_t> dist(0, alphabet.size() - 1);
-	mt19937 gen;
+	mt19937 gen(1);
+	const size_t hotelNameSize = 12;
 	for (unsigned i = 0; i < count; ++i)
 	{
 		string name;
-		name.reserve(12);
-		for (unsigned j = 0; j < 12; ++j)
+		name.reserve(hotelNameSize);
+		for (unsigned j = 0; j < hotelNameSize; ++j)
 		{
 			name += alphabet[dist(gen)];
 		}
@@ -123,7 +125,7 @@ vector<ClientId> GenerateClientIds(unsigned count)
 	vector<ClientId> clients;
 	clients.reserve(count);
 	uniform_int_distribution<unsigned> dist(1, 999'999'999);
-	mt19937 gen;
+	mt19937 gen(2);
 	for (unsigned i = 0; i < count; ++i)
 	{
 		clients.push_back(dist(gen));
@@ -135,7 +137,7 @@ SCENARIO("Benchmark")
 {
 	auto hotels = GenerateHotels(1'000);
 	auto clients = GenerateClientIds(20'000);
-	mt19937 gen;
+	mt19937 gen(3);
 	uniform_int_distribution<size_t> randHotel(0, hotels.size() - 1);
 	uniform_int_distribution<size_t> randClient(0, clients.size() - 1);
 	uniform_int_distribution<RoomCount> randRoomCount(1, 1000);
@@ -144,8 +146,9 @@ SCENARIO("Benchmark")
 
 	BookingService service;
 
-	const auto beginTime = chrono::steady_clock::now();
-	for (unsigned i = 0; i < 1000'000; ++i)
+	const unsigned queryCount = 100'000;
+	const auto beginTime = steady_clock::now();
+	for (unsigned i = 0; i < queryCount; ++i)
 	{
 		auto hotel = hotels[randHotel(gen)];
 		auto client = clients[randClient(gen)];
@@ -155,5 +158,7 @@ SCENARIO("Benchmark")
 	}
 	const auto endTime = chrono::steady_clock::now();
 	const auto duration = endTime - beginTime;
-	std::cout << "Duration: " << std::chrono::duration_cast<chrono::milliseconds>(duration).count() << "\n";
+	std::cout << queryCount << " queries have been executed in "
+			  << duration_cast<chrono::milliseconds>(duration).count()
+			  << " ms\n";
 }
