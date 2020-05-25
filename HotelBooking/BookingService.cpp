@@ -30,10 +30,6 @@ const HotelBookings* BookingService::FindHotelBookings(const std::string& hotelN
 
 HotelBookings& BookingService::GetHotelBookings(const std::string& hotelName)
 {
-	auto it = m_hotelBookings.find(hotelName);
-	if (it == m_hotelBookings.end())
-	{
-		it = m_hotelBookings.emplace(hotelName, m_statisticTimeSpan).first;
-	}
-	return it->second;
+	// Create new hotel or use existing one
+	return m_hotelBookings.emplace(hotelName, m_statisticTimeSpan).first->second;
 }
